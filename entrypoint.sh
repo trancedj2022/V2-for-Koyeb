@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-# 设置各变量，WS 路径前缀。(注意:伪装路径不需要 / 符号开始,为避免不必要的麻烦,请不要使用特殊符号.)
+# 设置各变量
 WSPATH=${WSPATH:-'argo'}
 UUID=${UUID:-'de04add9-5c68-8bab-950c-08cd5320df18'}
+WEB_USERNAME=${WEB_USERNAME:-'admin'}
+WEB_PASSWORD=${WEB_PASSWORD:-'password'}
 PROXY_IP=${PROXY_IP:-'185.217.5.30'}
 
 # 哪吒4个参数，ssl/tls 看是否需要，不需要的话可以留空，删除或在这4行最前面加 # 以注释
@@ -260,26 +262,43 @@ EOF
 generate_argo() {
   cat > argo.sh << ABC
 #!/usr/bin/env bash
-  
-# 下载并运行 Argo
-check_file() {
-  [ ! -e cloudflared ] && wget -O cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 && chmod +x cloudflared
-}
 
-run() {
+argo_type() {
   if [[ -n "\${ARGO_AUTH}" && -n "\${ARGO_DOMAIN}" ]]; then
-    [[ "\$ARGO_AUTH" =~ TunnelSecret ]] && echo "\$ARGO_AUTH" | sed 's@{@{"@g;s@[,:]@"\0"@g;s@}@"}@g' > tunnel.json && echo -e "tunnel: \$(sed "s@.*TunnelID:\(.*\)}@\1@g" <<< "\$ARGO_AUTH")\ncredentials-file: $PWD/tunnel.json" > tunnel.yml && ./cloudflared tunnel --config tunnel.yml run 2>&1 &
-    [[ \$ARGO_AUTH =~ ^[A-Z0-9a-z]{120,250}$ ]] && ./cloudflared tunnel run --token ${ARGO_AUTH} 2>&1 &
+    [[ \$ARGO_AUTH =~ TunnelSecret ]] && echo \$ARGO_AUTH > tunnel.json && cat > tunnel.yml << EOF
+tunnel: \$(cut -d\" -f12 <<< \$ARGO_AUTH)
+credentials-file: /app/tunnel.json
+protocol: http2
+
+ingress:
+  - hostname: \$ARGO_DOMAIN
+    service: http://localhost:8080
+EOF
+
+    [ -n "\${SSH_DOMAIN}" ] && cat >> tunnel.yml << EOF
+  - hostname: \$SSH_DOMAIN
+    service: http://localhost:2222
+EOF
+
+    [ -n "\${FTP_DOMAIN}" ] && cat >> tunnel.yml << EOF
+  - hostname: \$FTP_DOMAIN
+    service: http://localhost:3333
+EOF
+
+    cat >> tunnel.yml << EOF
+    originRequest:
+      noTLSVerify: true
+  - service: http_status:404
+EOF
+
   else
-    ./cloudflared tunnel --no-autoupdate --url http://localhost:8080 2>&1 &
-    sleep 5
-    local LOCALHOST=\$(ss -nltp | grep '"cloudflared"' | awk '{print \$4}')
-    ARGO_DOMAIN=\$(wget -qO- http://\$LOCALHOST/quicktunnel | cut -d\" -f4)
+    ARGO_DOMAIN=\$(cat argo.log | grep -o "info.*https://.*trycloudflare.com" | sed "s@.*https://@@g" | tail -n 1)
   fi
 }
 
 export_list() {
   VMESS="{ \"v\": \"2\", \"ps\": \"Argo-Vmess\", \"add\": \"icook.hk\", \"port\": \"443\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"\${ARGO_DOMAIN}\", \"path\": \"/${WSPATH}-vmess?ed=2048\", \"tls\": \"tls\", \"sni\": \"\${ARGO_DOMAIN}\", \"alpn\": \"\" }"
+
   cat > list << EOF
 *******************************************
 V2-rayN:
@@ -317,8 +336,7 @@ EOF
   cat list
 }
 
-check_file
-run
+argo_type
 export_list
 ABC
 }
@@ -327,17 +345,12 @@ generate_nezha() {
   cat > nezha.sh << EOF
 #!/usr/bin/env bash
 
-# 哪吒的三个参数
-NEZHA_SERVER=${NEZHA_SERVER}
-NEZHA_PORT=${NEZHA_PORT}
-NEZHA_KEY=${NEZHA_KEY}
-
 # 检测是否已运行
 check_run() {
-  [[ \$(pgrep -laf nezha-agent) ]] && echo "哪吒客户端正在运行中" && exit
+  [[ \$(pgrep -lafx nezha-agent) ]] && echo "哪吒客户端正在运行中" && exit
 }
 
-# 三个变量不全则不安装哪吒客户端
+# 若哪吒三个变量不全，则不安装哪吒客户端
 check_variable() {
   [[ -z "\${NEZHA_SERVER}" || -z "\${NEZHA_PORT}" || -z "\${NEZHA_KEY}" ]] && exit
 }
@@ -345,27 +358,158 @@ check_variable() {
 # 下载最新版本 Nezha Agent
 download_agent() {
   if [ ! -e nezha-agent ]; then
-    URL=\$(wget -qO- -4 "https://api.github.com/repos/naiba/nezha/releases/latest" | grep -o "https.*linux_amd64.zip")
-    wget -t 2 -T 10 -N \${URL}
-    unzip -qod ./ nezha-agent_linux_amd64.zip && rm -f nezha-agent_linux_amd64.zip
+    URL=\$(wget -qO- "https://api.github.com/repos/nezhahq/agent/releases/latest" | grep -o "https.*linux_amd64.zip")
+    URL=\${URL:-https://github.com/nezhahq/agent/releases/download/v0.15.6/nezha-agent_linux_amd64.zip}
+    wget \${URL}
+    unzip -qod ./ nezha-agent_linux_amd64.zip
+    rm -f nezha-agent_linux_amd64.zip
   fi
-}
-
-# 运行客户端
-run() {
-  [[ ! \$PROCESS =~ nezha-agent && -e nezha-agent ]] && ./nezha-agent -s \${NEZHA_SERVER}:\${NEZHA_PORT} -p \${NEZHA_KEY} 2>&1 &
 }
 
 check_run
 check_variable
 download_agent
-run
 EOF
 }
 
-check_dependencies
+generate_ttyd() {
+  cat > ttyd.sh << EOF
+#!/usr/bin/env bash
+
+# 检测是否已运行
+check_run() {
+  [[ \$(pgrep -lafx ttyd) ]] && echo "ttyd 正在运行中" && exit
+}
+
+# 若 ssh argo 域名不设置，则不安装 ttyd
+check_variable() {
+  [ -z "\${SSH_DOMAIN}" ] && exit
+}
+
+# 下载最新版本 ttyd
+download_ttyd() {
+  if [ ! -e ttyd ]; then
+    URL=\$(wget -qO- "https://api.github.com/repos/tsl0922/ttyd/releases/latest" | grep -o "https.*x86_64")
+    URL=\${URL:-https://github.com/tsl0922/ttyd/releases/download/1.7.3/ttyd.x86_64}
+    wget -O ttyd \${URL}
+    chmod +x ttyd
+  fi
+}
+
+check_run
+check_variable
+download_ttyd
+EOF
+}
+
+generate_filebrowser () {
+  cat > filebrowser.sh << EOF
+#!/usr/bin/env bash
+
+# 检测是否已运行
+check_run() {
+  [[ \$(pgrep -lafx filebrowser) ]] && echo "filebrowser 正在运行中" && exit
+}
+
+# 若 ftp argo 域名不设置，则不安装 filebrowser
+check_variable() {
+  [ -z "\${FTP_DOMAIN}" ] && exit
+}
+
+# 下载最新版本 filebrowser
+download_filebrowser() {
+  if [ ! -e filebrowser ]; then
+    URL=\$(wget -qO- "https://api.github.com/repos/filebrowser/filebrowser/releases/latest" | grep -o "https.*linux-amd64.*gz")
+    URL=\${URL:-https://github.com/filebrowser/filebrowser/releases/download/v2.23.0/linux-amd64-filebrowser.tar.gz}
+    wget -O filebrowser.tar.gz \${URL}
+    tar xzvf filebrowser.tar.gz filebrowser
+    rm -f filebrowser.tar.gz
+    chmod +x filebrowser
+    PASSWORD_HASH=\$(./filebrowser hash \$WEB_PASSWORD)
+    sed -i "s#PASSWORD_HASH#\$PASSWORD_HASH#g" ecosystem.config.js
+  fi
+}
+
+check_run
+check_variable
+download_filebrowser
+EOF
+}
+
+# 生成 pm2 配置文件
+generate_pm2_file() {
+  if [[ -n "${ARGO_AUTH}" && -n "${ARGO_DOMAIN}" ]]; then
+    [[ $ARGO_AUTH =~ TunnelSecret ]] && ARGO_ARGS="tunnel --edge-ip-version auto --config tunnel.yml run"
+    [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]] && ARGO_ARGS="tunnel --edge-ip-version auto --protocol http2 run --token ${ARGO_AUTH}"
+  else
+    ARGO_ARGS="tunnel --edge-ip-version auto --no-autoupdate --protocol http2 --logfile argo.log --loglevel info --url http://localhost:8080"
+  fi
+
+  TLS=${NEZHA_TLS:+'--tls'}
+
+  cat > ecosystem.config.js << EOF
+module.exports = {
+  "apps":[
+      {
+          name: 'web',
+          script: '/app/web.js run',
+          out_file: "/dev/null",
+          error_file: "/dev/null"
+      },
+      {
+          name: 'argo',
+          script: 'cloudflared',
+          args: "${ARGO_ARGS}",
+          out_file: "/dev/null",
+          error_file: "/dev/null"
+EOF
+
+  [[ -n "${NEZHA_SERVER}" && -n "${NEZHA_PORT}" && -n "${NEZHA_KEY}" ]] && cat >> ecosystem.config.js << EOF
+      },
+      {
+          name: 'nezha',
+          script: '/app/nezha-agent',
+          args: "-s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${TLS}",
+          out_file: "/dev/null",
+          error_file: "/dev/null"
+EOF
+
+  [ -n "${SSH_DOMAIN}" ] && cat >> ecosystem.config.js << EOF
+      },
+      {
+          name: 'ttyd',
+          script: '/app/ttyd',
+          args: "-c ${WEB_USERNAME}:${WEB_PASSWORD} -p 2222 bash",
+          out_file: "/dev/null",
+          error_file: "/dev/null"
+EOF
+
+  [ -n "${FTP_DOMAIN}" ] && cat >> ecosystem.config.js << EOF
+      },
+      {
+          name: 'filebrowser',
+          script: '/app/filebrowser',
+          args: "--port 3333 --username ${WEB_USERNAME} --password 'PASSWORD_HASH'",
+          out_file: "/dev/null",
+          error_file: "/dev/null"
+EOF
+
+  cat >> ecosystem.config.js << EOF
+      }
+  ]
+}
+EOF
+}
+
 generate_config
 generate_argo
 generate_nezha
+generate_ttyd
+generate_filebrowser
+generate_pm2_file
+
 [ -e nezha.sh ] && bash nezha.sh
 [ -e argo.sh ] && bash argo.sh
+[ -e ttyd.sh ] && bash ttyd.sh
+[ -e filebrowser.sh ] && bash filebrowser.sh
+[ -e ecosystem.config.js ] && pm2 start
