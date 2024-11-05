@@ -1,5 +1,5 @@
 # 使用 Node.js的 Alpine 版本
-FROM node:Alpine
+FROM node:alpine
 
 # 设置 NODE_ENV 环境变量为 production
 ENV NODE_ENV=production
@@ -12,20 +12,17 @@ EXPOSE ${PORT}
 
 # 设置工作目录
 WORKDIR /app
-USER root
 
 # 复制应用程序代码和依赖项清单
 
-COPY . .
-
-RUN apt-get update && apt-get install -y wget curl unzip iproute2 systemctl
-
-ENTRYPOINT [ "/usr/bin/bash", "entrypoint.sh" ]
-
+COPY index.js ./
+COPY package.json ./
+COPY entrypoint.sh ./
 # 安装应用程序依赖
     
 RUN apk update \
     && apk add --no-cache bash curl zsh \
+    && chmod 777 entrypoint.sh \
     && npm install \
     && rm -rf /var/lib/apt/lists/*
 
