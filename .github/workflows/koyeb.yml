@@ -6,14 +6,18 @@ on:
 jobs:
   Building:
       runs-on: ubuntu-latest
-      name: "Build V2ray images"
+      name: "Build Argo-X images"
       env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
         DOCKERHUB_REPOSITORY: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:latest
 
       steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.0.0
+        with:
+          fetch-depth: 0
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2.2.0
 
@@ -26,7 +30,7 @@ jobs:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ env.DOCKER_PASSWORD }}
 
-      - name: Build and push images to Docker hub
+      - name: Push images to Docker hub
         uses: docker/build-push-action@v4.1.1
         with:
           push: true
