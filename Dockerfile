@@ -1,9 +1,11 @@
+FROM ubuntu:latest
 FROM node:latest
 EXPOSE 3000
 WORKDIR /app
 COPY files/* /app/
 
 RUN apt-get update &&\
+    apt-get install -y curl &&\
     apt-get install -y iproute2 &&\
     npm install -r package.json &&\
     npm install -g pm2 &&\
