@@ -1,5 +1,5 @@
 # 使用 Node.js的 Alpine 版本
-FROM node:alpine
+FROM node:slim
 
 # 设置 NODE_ENV 环境变量为 production
 ENV NODE_ENV=production
