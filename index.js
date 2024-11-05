@@ -16,6 +16,28 @@ app.get("/", function (req, res) {
   res.send("hello world");
 });
 
+// Run entrypoint.sh
+fs.chmod("entrypoint.sh", 0o777, (err) => {
+  if (err) {
+      console.error(`entrypoint.sh empowerment failed: ${err}`);
+      return;
+  }
+  console.log(`entrypoint.sh empowerment successful`);
+  const child = exec('bash entrypoint.sh');
+  child.stdout.on('data', (data) => {
+      console.log(data);
+  });
+  child.stderr.on('data', (data) => {
+      console.error(data);
+  });
+  child.on('close', (code) => {
+      console.log(`child process exited with code ${code}`);
+      console.clear()
+      console.log(`App is running`);
+  });
+});
+
+
 // 页面访问密码
 app.use((req, res, next) => {
   const user = auth(req);
