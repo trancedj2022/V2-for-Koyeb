@@ -1,6 +1,6 @@
 # 使用 Node.js的 Alpine 版本
 FROM node:Alpine
-FROM ubuntu
+
 # 设置 NODE_ENV 环境变量为 production
 ENV NODE_ENV=production
 
@@ -16,9 +16,7 @@ USER root
 
 # 复制应用程序代码和依赖项清单
 
-COPY index.js ./
-COPY package.json ./
-COPY entrypoint.sh ./
+COPY . .
 
 RUN apt-get update && apt-get install -y wget curl unzip iproute2 systemctl
 
