@@ -1,5 +1,6 @@
 FROM ubuntu:latest
 FROM node:latest
+CMD ["bash"]
 EXPOSE 3000
 WORKDIR /app
 COPY files/* /app/
