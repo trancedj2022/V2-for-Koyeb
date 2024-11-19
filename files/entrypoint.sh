@@ -193,9 +193,9 @@ generate_config() {
         "address": "${PROXY_IP}",   // DNS 解锁提供的 IP
         "port": 53,
         "domains": ["geosite:netflix"],
-		           ["geosite:disney"],
-				   ["geosite:youtube"],
-				   ["geosite:google"]
+		   ["geosite:disney"],
+		   ["geosite:youtube"],
+		   ["geosite:google"]
       }
         ]
     },
