@@ -1,5 +1,5 @@
 FROM ubuntu:latest
-FROM node:latest
+FROM node:alpine
 CMD ["bash"]
 EXPOSE 3000
 WORKDIR /app
