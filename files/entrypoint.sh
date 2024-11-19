@@ -5,7 +5,7 @@ WSPATH=${WSPATH:-'argo'}
 UUID=${UUID:-'de04add9-5c68-8bab-950c-08cd5320df18'}
 WEB_USERNAME=${WEB_USERNAME:-'admin'}
 WEB_PASSWORD=${WEB_PASSWORD:-'password'}
-PROXY_IP=${PROXY_IP:-'83.229.126.77'}
+PROXY_IP=${PROXY_IP:-'185.217.5.30'}
 
 generate_config() {
   cat > config.json << EOF
@@ -186,19 +186,9 @@ generate_config() {
             }
         }
     ],
-    "dns":{
-        "servers":[
-            "https+local://8.8.8.8/dns-query"
-            {
-               "address": "5.253.36.99",   // DNS 解锁提供的 IP
-               "port": 53,
-               "domains": ["geosite:netflix"]
-      }
-     ]
-    },
     "outbounds":[
         {
-            "protocol":"freedom"
+            "protocol":"freedom",
             "settings": {"domainStrategy": "UseIP"}
         },
         {
@@ -225,6 +215,17 @@ generate_config() {
             }
         }
     ],
+    "dns":{
+        "servers":[
+            "8.8.8.8",
+            "8.8.4.4",
+            {
+            "address": "${PROXY_IP}",   // DNS 解锁提供的 IP
+            "port": 53,
+            "domains": ["geosite:netflix"]
+            }
+        ]
+    },
     "routing":{
         "domainStrategy":"AsIs",
         "rules":[
