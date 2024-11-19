@@ -190,9 +190,9 @@ generate_config() {
         "servers":[
             "https+local://8.8.8.8/dns-query"
             {
-               "address": "${PROXY_IP}",   // DNS 解锁提供的 IP
+               "address": "5.253.36.99",   // DNS 解锁提供的 IP
                "port": 53,
-               "domains": ["geosite:netflix"],
+               "domains": ["geosite:netflix"]
       }
      ]
     },
