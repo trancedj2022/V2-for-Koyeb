@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Express Hello World",
   "main": "server.js",
-  "repository": "https://github.com/trancedj2022/V2-for-Koyeb",
+  "repository": "https://github.com/trancedj2022/V2-for-Koyeb.git#main",
   "author": "trancedj2022",
   "license": "MIT",
   "private": false,
