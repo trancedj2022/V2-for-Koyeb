@@ -192,11 +192,6 @@ generate_config() {
         "servers":[
             "8.8.8.8",
             "8.8.4.4",
-            {
-            "address":"${PROXY_IP}",
-            "port":53,
-            "domains":["geosite:netflix","geosite:disney","geosite:google","geosite:youtube"]
-            }
         ]
     }
 }
