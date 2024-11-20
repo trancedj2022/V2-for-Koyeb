@@ -182,6 +182,12 @@ generate_config() {
             }
         }
     ],
+    "outbounds":[
+        {
+            "protocol":"freedom",
+            "settings":{"domainStrategy":"UseIP"}
+        }
+    ],
     "dns":{
         "servers":[
             "8.8.8.8",
@@ -192,13 +198,7 @@ generate_config() {
             "domains":["geosite:netflix","geosite:disney","geosite:google","geosite:youtube"]
             }
         ]
-    },
-    "outbounds":[
-        {
-            "protocol":"freedom",
-            "settings":{"domainStrategy":"UseIP"}
-        }
-    ]
+    }
 }
 EOF
 }
