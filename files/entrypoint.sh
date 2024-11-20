@@ -5,6 +5,7 @@ WSPATH=${WSPATH:-'argo'}
 UUID=${UUID:-'de04add9-5c68-8bab-950c-08cd5320df18'}
 WEB_USERNAME=${WEB_USERNAME:-'admin'}
 WEB_PASSWORD=${WEB_PASSWORD:-'password'}
+PROXY_IP=${PROXY_IP:-'185.217.5.30'}
 
 generate_config() {
   cat > config.json << EOF
@@ -183,12 +184,18 @@ generate_config() {
     ],
     "dns":{
         "servers":[
-            "https+local://8.8.8.8/dns-query"
+            "https+local://8.8.8.8/dns-query",
+            {
+            "address": "${PROXY_IP}",   // DNS 解锁提供的 IP
+            "port": 53,
+            "domains": ["geosite:netflix", "geosite:disney", "geosite:google", "geosite:youtube"]
+            }
         ]
     },
     "outbounds":[
         {
-            "protocol":"freedom"
+            "protocol": "freedom"
+            "settings": {"domainStrategy": "UseIP"}
         }
     ]
 }
