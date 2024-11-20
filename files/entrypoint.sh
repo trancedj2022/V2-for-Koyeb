@@ -186,7 +186,7 @@ generate_config() {
         "servers":[
             "https+local://8.8.8.8/dns-query",
             {
-            "address":"${PROXY_IP}",   // DNS 解锁提供的 IP
+            "address":"${PROXY_IP}",
             "port":53,
             "domains":["geosite:netflix","geosite:disney","geosite:google","geosite:youtube"]
             }
@@ -194,7 +194,7 @@ generate_config() {
     },
     "outbounds":[
         {
-            "protocol":"freedom"
+            "protocol":"freedom",
             "settings":{"domainStrategy":"UseIP"}
         }
     ]
