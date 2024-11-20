@@ -188,18 +188,18 @@ generate_config() {
     ],
     "outbounds":[
         {
-            "protocol":"freedom",
+            "protocol": "freedom",
             "settings": {"domainStrategy": "UseIP"}
         }
     ],
     "dns":{
-        "servers":[
+        "servers": [
             "8.8.8.8",
             "8.8.4.4",
             {
             "address": "${PROXY_IP}",   // DNS 解锁提供的 IP
             "port": 53,
-            "domains": ["geosite:netflix"]
+            "domains": ["geosite:netflix", "geosite:disney", "geosite:google", "geosite:youtube"]
             }
         ]
     },
