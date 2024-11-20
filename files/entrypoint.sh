@@ -186,16 +186,16 @@ generate_config() {
         "servers":[
             "https+local://8.8.8.8/dns-query",
             {
-            "address": "${PROXY_IP}",   // DNS 解锁提供的 IP
-            "port": 53,
-            "domains": ["geosite:netflix", "geosite:disney", "geosite:google", "geosite:youtube"]
+            "address":"${PROXY_IP}",   // DNS 解锁提供的 IP
+            "port":53,
+            "domains":["geosite:netflix","geosite:disney","geosite:google","geosite:youtube"]
             }
         ]
     },
     "outbounds":[
         {
-            "protocol": "freedom"
-            "settings": {"domainStrategy": "UseIP"}
+            "protocol":"freedom"
+            "settings":{"domainStrategy":"UseIP"}
         }
     ]
 }
