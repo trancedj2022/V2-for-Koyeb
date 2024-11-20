@@ -195,7 +195,7 @@ generate_config() {
         {
          "address":"${PROXY_IP}",
          "port":53,
-         "domains":["geosite:netflix","geosite:disney","geosite:google","geosite:youtube"]
+         "domains":["geosite:netflix"]
         }
       ]
     }
