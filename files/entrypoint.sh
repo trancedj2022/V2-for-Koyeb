@@ -95,8 +95,7 @@ generate_config() {
                 "destOverride":[
                     "http",
                     "tls"
-                ],
-                "metadataOnly":false
+                ]
             }
         },
         {
@@ -122,8 +121,7 @@ generate_config() {
                 "destOverride":[
                     "http",
                     "tls"
-                ],
-                "metadataOnly":false
+                ]
             }
         },
         {
@@ -149,8 +147,7 @@ generate_config() {
                 "destOverride":[
                     "http",
                     "tls"
-                ],
-                "metadataOnly":false
+                ]
             }
         },
         {
@@ -177,8 +174,7 @@ generate_config() {
                 "destOverride":[
                     "http",
                     "tls"
-                ],
-                "metadataOnly":false
+                ]
             }
         }
     ],
@@ -190,7 +186,7 @@ generate_config() {
     ],
     "dns":{
     "servers":[
-          "https+local://8.8.8.8/dns-query",
+        "https+local://8.8.8.8/dns-query",
         {
             "address":"${PROXY_IP}",
             "port":53,
