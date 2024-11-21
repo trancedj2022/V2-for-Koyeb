@@ -185,20 +185,14 @@ generate_config() {
         }
     ],
     "dns":{
-    "servers":[
-        "https+local://8.8.8.8/dns-query",
-        {
-            "address":"${PROXY_IP}",
-            "port":53,
-            "domains":[
-                "geosite:netflix",
-                "geosite:disney",
-                "geosite:google",
-                "geosite:youtube"
-            ]
-        }
+        "hosts":{
+              "geosite:netflix":"${PROXY_IP}",
+              "geosite:disney":"${PROXY_IP}"
+           },
+        "servers":[
+               "https+local://8.8.8.8/dns-query"
     ]
- }
+  }
 }
 EOF
 }
