@@ -180,19 +180,20 @@ generate_config() {
     ],
     "outbounds":[
         {
-            "protocol":"freedom",
-            "settings":{"domainStrategy":"UseIP"}
+         "protocol":"freedom",
+         "settings":{"domainStrategy": "UseIP"}
         }
-    ],
-    "dns":{
-        "hosts":{
-              "geosite:netflix":"${PROXY_IP}",
-              "geosite:disney":"${PROXY_IP}"
-           },
-        "servers":[
-               "https+local://8.8.8.8/dns-query"
-    ]
-  }
+	],
+    "dns": {
+            "servers": [
+            "8.8.8.8",
+            "8.8.4.4",
+      {
+        "address":"${PROXY_IP}",
+        "port":53,
+        "domains":["geosite:netflix", "geosite:disney", "geosite:google", "geosite:youtube"]
+      }
+  ]
 }
 EOF
 }
